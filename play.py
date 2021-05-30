@@ -9,7 +9,7 @@ import random
 import numpy as np
 from globy import *
 import mediapipe as mp
-from game import Breakout
+from game import Game
 
 # mediapipe
 index_finger = 8
@@ -26,7 +26,7 @@ fps = 30
 fps_clock = pygame.time.Clock()
 rect = [window_width / 2, window_height / 2, 50, 50]
 white = (255, 255, 255)
-breakout = Breakout()
+simple_game = Game()
 
 # time management
 previous_time = time.time()
@@ -53,20 +53,13 @@ while capture.isOpened() and running:
     results = hands.process(mp_frame) 
     if results.multi_hand_landmarks :
         x = (sum([results.multi_hand_landmarks[0].landmark[i].x for i in range(no_landmarks)]) / no_landmarks) * window_width
-        if breakout.x_in_bounds(x): 
-            breakout.update_paddle(x)
+        y = (sum([results.multi_hand_landmarks[0].landmark[i].y for i in range(no_landmarks)]) / no_landmarks) * window_height
 
     # render
     window.fill((0,0,0))
-    game_objects = breakout.get_objects()
-    pygame.draw.rect(window, white, game_objects[0])
-    for index, brick in enumerate(game_objects[1]):
-        if brick != None: pygame.draw.rect(window, white, brick)
-    pygame.draw.circle(window, white, (game_objects[2].x, game_objects[2].y), breakout.ball_radius)
+    pygame.draw.rect(window, white, (x, y, 30, 30))
 
     # update
-    breakout.update()
-    breakout.check_collisions()
 
     # pygame
     pygame.display.update()
