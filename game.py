@@ -7,6 +7,7 @@ import random
 import pygame
 from globy import *
 
+# game
 class Game:
     def __init__(self):
         pass
