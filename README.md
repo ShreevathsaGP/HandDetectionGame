@@ -1,2 +1,2 @@
-# VirtualBreakout
-Using finger detection to play breakout.
+# InteractiveSimulation
+Using hand detection to interact with physics objects on screen.
