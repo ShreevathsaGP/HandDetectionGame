@@ -8,6 +8,10 @@ import random
 window_width = 1280
 window_height = 720
 
+# get cartesian
+def get_cartesian(x, y):
+    return (x, window_height - y)
+
 # map list index
 def map_to_index(x1, y1, x2, y2):
     return (int(x2 / x1), int(y2 / y1))
@@ -41,6 +45,10 @@ def get_quadrant(x, y):
 def euclidean_distance(x1, y1, x2, y2):
     return math.sqrt( (math.pow(y2 - y1, 2) + math.pow(x2 - x1, 2)) )
 
+# midpoint
+def get_midpoint(x1, y1, x2, y2):
+    return ((x1 + x2) / 2, (y1 + y2) / 2)
+
 # scale distance [0, 1]
 def scale_distance(min_distance, max_distance, distance):
     return (distance - min_distance) / max_distance
@@ -60,6 +68,12 @@ class Vector:
     def __add__(self, other):
         x = self.x + other.x
         y = self.y + other.y
+
+        return Vector(x, y)
+
+    def __sub__(self, other):
+        x = self.x - other.x
+        y = self.y - other.y
 
         return Vector(x, y)
 
@@ -86,3 +100,9 @@ class Vector:
         y = self.y // scalar
 
         return Vector(x, y)
+
+    def as_tuple(self):
+        return (self.x, self.y)
+
+    def cartesian(self):
+        self.x, self.y = get_cartesian(self.x, self.y)

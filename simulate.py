@@ -1,15 +1,16 @@
-# play.py
+# simulate.py
 
 import cv2
 import sys
 import math
 import time
 import pygame
+import pymunk
 import random
 import numpy as np
 from globy import *
 import mediapipe as mp
-from game import Game
+from environment import Environment
 
 # mediapipe
 index_finger = 8
@@ -18,22 +19,27 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence = 0.5, min_tracking_confidence = 0.5, max_num_hands = 1)
 line_paths = [[0, 1, 2, 3, 4], [0, 5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16], [0, 17, 18, 19, 20], [5, 9, 13, 17]]
 
-# pygame pygame.init()
+# pygame 
+pygame.init()
 window = pygame.display.set_mode((window_width, window_height))
 pygame.display.set_caption("Hand Detection Game")
 
-# game [ fps = 30 ]
-fps = 30
-fps_clock = pygame.time.Clock()
-rect = [window_width / 2, window_height / 2, 50, 50]
+# others
 white = (255, 255, 255)
-simple_game = Game()
+rect = [window_width / 2, window_height / 2, 50, 50]
 
 # time management
-previous_time = time.time()
+fps = 30
 current_time = None
+previous_time = time.time()
+fps_clock = pygame.time.Clock()
 
-# game loop
+# simulation
+pymunk.pygame_util.positive_y_is_up = True
+drawing_utils = pymunk.pygame_util.DrawOptions(window)
+physics_environment = Environment()
+
+# simulation loop
 capture = cv2.VideoCapture(0)
 running = True
 while capture.isOpened() and running:
@@ -50,7 +56,7 @@ while capture.isOpened() and running:
     mp_frame = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
     mp_frame.flags.writeable = False # reference pass speedup
 
-    # detection & mapping
+    # hand render
     window.fill((0,0,0))
     results = hands.process(mp_frame) 
     if results.multi_hand_landmarks :
@@ -60,13 +66,14 @@ while capture.isOpened() and running:
 
         # render
         for landmark in landmarks:
-            pygame.draw.circle(window, white, (landmark.x * window_width, landmark.y * window_height), 15)
+            pygame.draw.circle(window, white, (landmark.x * window_width, landmark.y * window_height), 5)
 
-        for path in line_paths:
-            for index in range(len(path) - 1):
-                pygame.draw.line(window, white, 
-                        (landmarks[path[index]].x * window_width, landmarks[path[index]].y * window_height),
-                        (landmarks[path[index + 1]].x * window_width, landmarks[path[index + 1]].y * window_height), 2)
+        # hand segments
+        physics_environment.update_hand(landmarks, line_paths)
+
+    # env render
+    physics_environment.space.debug_draw(drawing_utils)
+    physics_environment.space.step(0.01)
 
     # pygame
     pygame.display.update()
